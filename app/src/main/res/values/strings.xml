@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">SmartParking</string>
+    <string name="comincia_a_parcheggiare">Comincia a Parcheggiare!</string>
+    <string name="visualizza_storico">Visualizza Storico</string>
 </resources>
