@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SmartParking</string>
+    <string name="comincia_a_parcheggiare">Start Parking!</string>
+    <string name="visualizza_storico">See History</string>
+    <string name="parcheggia_qui">Park Here</string>
+    <string name="logo">logo</string>
+</resources>
