@@ -130,17 +130,19 @@ class MapActivity : AppCompatActivity(), LocationListener {
 
     fun parkHere(){
         if(::marker.isInitialized) {
-            val parkingLatitude = marker.position.latitude
-            val parkingLongitude = marker.position.longitude
+            val parkingLatitude = marker.position.latitude.toFloat()
+            val parkingLongitude = marker.position.longitude.toFloat()
 
             val prefs = applicationContext.getSharedPreferences("SmartParkingData", MODE_PRIVATE)
             prefs.edit {
-                putFloat("PARK_LAT", parkingLatitude.toFloat())
-                putFloat("PARK_LON", parkingLongitude.toFloat())
+                putFloat("PARK_LAT", parkingLatitude)
+                putFloat("PARK_LON", parkingLongitude)
 
                 putBoolean("IS_PARKED", true)
             }
+            val dbHelper = DatabaseHelper(this)
 
+            dbHelper.insertParking(parkingLatitude,parkingLongitude)
             Toast.makeText(this, "Posizione salvata con successo!", Toast.LENGTH_LONG).show()
         }
     }
