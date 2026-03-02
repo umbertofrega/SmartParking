@@ -6,6 +6,7 @@ import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
+import android.widget.Button
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -17,11 +18,14 @@ import org.osmdroid.config.Configuration
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
+import androidx.core.content.edit
 
 class MapActivity : AppCompatActivity(), LocationListener {
     val locationPermissionCode = 100
     private lateinit var mapView: MapView
     private lateinit var  locationManager : LocationManager
+
+    private lateinit var marker : Marker
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,12 +42,21 @@ class MapActivity : AppCompatActivity(), LocationListener {
             insets
         }
 
+        initMap()
+
+        val parkListener: Button = findViewById(R.id.btn_park_here)
+        
+        parkListener.setOnClickListener{ parkHere()}
+    }
+
+    fun initMap() {
         mapView = findViewById(R.id.osmdroid_map)
         mapView.setMultiTouchControls(true)
         mapView.controller.setZoom(18.0)
 
         locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
-        val requestLocationPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+        val requestLocationPermission =
+            ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
 
         if (requestLocationPermission != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(
@@ -52,23 +65,51 @@ class MapActivity : AppCompatActivity(), LocationListener {
                 locationPermissionCode
             )
         } else {
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000L, 10f, this)
+            locationManager.requestLocationUpdates(
+                LocationManager.GPS_PROVIDER,
+                5000L,
+                10f,
+                this
+            )
+        }
+
+        val prefs = applicationContext.getSharedPreferences("SmartParkingData", MODE_PRIVATE)
+        if(prefs.getBoolean("IS_PARKED", false)){
+            val parkingLatitude = prefs.getFloat("PARK_LAT",0.toFloat()).toDouble()
+            val parkingLongitude = prefs.getFloat("PARK_LON",0.toFloat()).toDouble()
+            val parking = createMarker(parkingLatitude,parkingLongitude,"Parked Here")
+            mapView.overlays.add(parking)
+            mapView.invalidate()
         }
     }
 
     override fun onLocationChanged(location: Location){
         val geoPoint = GeoPoint(location.latitude,location.longitude)
 
-        mapView.overlays.clear()
+        if (::marker.isInitialized) {
+            mapView.overlays.remove(marker)
+        }
 
-        val marker = Marker(mapView)
-        marker.position = geoPoint
-        marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+        marker = createMarker(location.latitude,location.longitude, "Sei qui")
+
         mapView.overlays.add(marker)
-
         mapView.controller.setCenter(geoPoint)
-        mapView.controller.zoomIn()
+        mapView.invalidate()
+    }
 
+    private fun createMarker(latitude : Double, longitude: Double, title : String): Marker {
+        val newMarker = Marker(mapView)
+
+        val geoPoint = GeoPoint(latitude,longitude)
+
+        newMarker.position = geoPoint
+
+        newMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+
+
+        newMarker.title = title
+
+        return newMarker
     }
 
     override fun onRequestPermissionsResult(
@@ -86,5 +127,24 @@ class MapActivity : AppCompatActivity(), LocationListener {
             }
         }
     }
+
+    fun parkHere(){
+        if(::marker.isInitialized) {
+            val parkingLatitude = marker.position.latitude
+            val parkingLongitude = marker.position.longitude
+
+            val prefs = applicationContext.getSharedPreferences("SmartParkingData", MODE_PRIVATE)
+            prefs.edit {
+                putFloat("PARK_LAT", parkingLatitude.toFloat())
+                putFloat("PARK_LON", parkingLongitude.toFloat())
+
+                putBoolean("IS_PARKED", true)
+            }
+
+            Toast.makeText(this, "Posizione salvata con successo!", Toast.LENGTH_LONG).show()
+        }
+    }
+
+
 
 }
