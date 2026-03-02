@@ -18,8 +18,8 @@ class MainActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-        val btnPark : Button = findViewById(R.id.btn_parcheggia)
-        val btnHistory : Button = findViewById(R.id.btn_storico)
+        val btnPark : Button = findViewById(R.id.btn_park)
+        val btnHistory : Button = findViewById(R.id.btn_history)
 
         btnPark.setOnClickListener {
             val mapIntent = Intent(this, MapActivity::class.java)

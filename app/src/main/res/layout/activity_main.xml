@@ -17,10 +17,11 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.15"
+        android:contentDescription="@string/logo"
         app:srcCompat="@drawable/logo" />
 
     <Button
-        android:id="@+id/btn_parcheggia"
+        android:id="@+id/btn_park"
         android:layout_width="300dp"
         android:layout_height="100dp"
         android:text="@string/comincia_a_parcheggiare"
@@ -31,13 +32,13 @@
         app:layout_constraintVertical_bias="0.5" />
 
     <Button
-        android:id="@+id/btn_storico"
+        android:id="@+id/btn_history"
         android:layout_width="300dp"
         android:layout_height="70dp"
         android:layout_marginTop="24dp"
         android:text="@string/visualizza_storico"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btn_parcheggia" />
+        app:layout_constraintTop_toBottomOf="@+id/btn_park" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
