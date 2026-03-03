@@ -1,13 +1,20 @@
 package com.piattaforme.smartparking
 
 import android.os.Bundle
+import android.widget.Button
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import com.piattaforme.smartparking.model.DatabaseHelper
+import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.piattaforme.smartparking.model.SpotAdapter
+import com.piattaforme.smartparking.model.SpotsHistoryViewModel
 
 class HistoryActivity : AppCompatActivity() {
+    private lateinit var viewModel: SpotsHistoryViewModel
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -17,25 +24,27 @@ class HistoryActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-    }
 
-    private fun showHistory(){
-        val dbHelper = DatabaseHelper(this)
-        val cursor = dbHelper.getAllHistory()
-        var count = 0
-        if(cursor.moveToFirst()) {
-            do {
-                ++count
-                val latitudeIndex = cursor.getColumnIndex("latitude")
-                val latitude = cursor.getFloat(latitudeIndex)
+        viewModel = ViewModelProvider(this)[SpotsHistoryViewModel::class.java]
 
-                val longitudeIndex = cursor.getColumnIndex("latitude")
-                val longitude = cursor.getFloat(longitudeIndex)
-
-                val noteIndex = cursor.getColumnIndex( "note")
-                val note = cursor.getString(noteIndex)
-            } while (cursor.moveToNext())
+        val btnEmpty : Button = findViewById(R.id.btn_empty)
+        btnEmpty.setOnClickListener {
+            viewModel.clearHistory()
         }
+
+        showHistory()
+
     }
 
+    fun showHistory(){
+
+        val recyclerView = findViewById<RecyclerView>(R.id.rv_history)
+        recyclerView.layoutManager = LinearLayoutManager(this)
+
+        val adapter = SpotAdapter()
+
+        recyclerView.adapter = adapter
+
+        adapter.setData(viewModel.getAllHistory())
+    }
 }
