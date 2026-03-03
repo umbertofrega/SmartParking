@@ -6,13 +6,13 @@ import androidx.room.Insert
 import androidx.room.Query
 
 @Dao
-interface ParkingHistoryDao {
+interface SpotsHistoryDao {
 
     @Insert
-    fun insert(parking: Park)
+    fun insert(parking: Spots)
 
     @Query("SELECT * FROM history ORDER BY id")
-    fun getAllHistory() : LiveData<List<Park>>
+    fun getAllHistory() : LiveData<List<Spots>>
 
     @Query("DELETE FROM history")
     fun deleteAllHistory()

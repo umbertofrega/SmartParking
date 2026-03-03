@@ -1,8 +1,15 @@
 <resources>
     <string name="app_name">SmartParking</string>
-    <string name="comincia_a_parcheggiare">Comincia a Parcheggiare!</string>
-    <string name="visualizza_storico">Visualizza Storico</string>
-    <string name="parcheggia_qui"> Parcheggia Qui </string>
+    <string name="start_parking">Comincia a Parcheggiare!</string>
+    <string name="see_history">Visualizza Storico</string>
+    <string name="park_here"> Parcheggia Qui </string>
     <string name="logo">logo</string>
-    <string name="i_tuoi_parcheggi">I tuoi parcheggi</string>
+    <string name="your_spots">I tuoi parcheggi</string>
+    <string name="alert_title">Dove hai parcheggiato?</string>
+    <string name="alert_message">Inserisci una nota per trovare l\'auto</string>
+    <string name="alert_button">"Salva Parcheggio "</string>
+    <string name="alert_saved_position">"Posizione salvata "</string>
+    <string name="saved_success">Posizione salvata con successo</string>
+    <string name="alert_cancel">Annulla</string>
+    <string name="alert_wait">In attesa del GPS…</string>
 </resources>

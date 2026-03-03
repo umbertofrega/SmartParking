@@ -23,8 +23,8 @@ import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 import androidx.core.content.edit
 import androidx.lifecycle.ViewModelProvider
-import com.piattaforme.smartparking.model.Park
-import com.piattaforme.smartparking.model.ParkingHistoryViewModel
+import com.piattaforme.smartparking.model.Spots
+import com.piattaforme.smartparking.model.SpotsHistoryViewModel
 
 class MapActivity : AppCompatActivity(), LocationListener {
     val locationPermissionCode = 100
@@ -144,16 +144,16 @@ class MapActivity : AppCompatActivity(), LocationListener {
             layout.addView(inputTesto)
 
             AlertDialog.Builder(this)
-                .setTitle("Dove hai parcheggiato?")
-                .setMessage("Inserisci un riferimento per ritrovare l'auto:")
+                .setTitle(this.getString(R.string.alert_title))
+                .setMessage(this.getString(R.string.alert_message))
                 .setView(layout)
-                .setPositiveButton("Salva Parcheggio") { dialog, _ ->
+                .setPositiveButton(this.getString(R.string.alert_button)) { dialog, _ ->
 
                     val userNote = inputTesto.text.toString()
 
-                    val finalText = userNote.ifBlank { "Posizione salvata" }
+                    val finalText = userNote.ifBlank { this.getString(R.string.alert_saved_position) }
 
-                    val parking = Park(latitude = marker.position.latitude.toFloat(), longitude = marker.position.longitude.toFloat(), note = finalText)
+                    val parking = Spots(latitude = marker.position.latitude.toFloat(), longitude = marker.position.longitude.toFloat(), note = finalText)
 
                     val prefs = applicationContext.getSharedPreferences("SmartParkingData", MODE_PRIVATE)
                     prefs.edit {
@@ -162,21 +162,21 @@ class MapActivity : AppCompatActivity(), LocationListener {
                         putBoolean("IS_PARKED", true)
                     }
 
-                    val historyViewModel = ViewModelProvider(this)[ParkingHistoryViewModel::class.java]
+                    val historyViewModel = ViewModelProvider(this)[SpotsHistoryViewModel::class.java]
                     val success = historyViewModel.insertParking(parking)
 
                     if(success) {
-                        Toast.makeText(this, "Posizione salvata con successo", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, this.getString(R.string.saved_success), Toast.LENGTH_SHORT).show()
                     }
                     dialog.dismiss()
                 }
-                .setNegativeButton("Annulla") { dialog, _ ->
+                .setNegativeButton(this.getString(R.string.alert_cancel)) { dialog, _ ->
                     dialog.cancel()
                 }
                 .show()
 
         } else {
-            Toast.makeText(this, "Attendi il segnale GPS...", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, this.getString(R.string.alert_wait), Toast.LENGTH_SHORT).show()
         }
     }
 }

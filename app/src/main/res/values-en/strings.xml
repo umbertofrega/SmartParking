@@ -1,9 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">SmartParking</string>
-    <string name="comincia_a_parcheggiare">Start Parking!</string>
-    <string name="visualizza_storico">See History</string>
-    <string name="parcheggia_qui">Park Here</string>
+    <string name="start_parking">Start Parking!</string>
+    <string name="see_history">See History</string>
+    <string name="park_here">Park Here</string>
     <string name="logo">logo</string>
-    <string name="i_tuoi_parcheggi">Your History</string>
+    <string name="alert_title">Where have you parked?</string>
+    <string name="your_spots">Your History</string>
+    <string name="alert_message">Write a note to find your spot!</string>
+    <string name="alert_button">"Save spot"</string>
+    <string name="alert_saved_position">"Saved spot"</string>
+    <string name="saved_success">Spot saved successfully</string>
+    <string name="alert_cancel">Cancel</string>
+    <string name="alert_wait">Waiting for gps…</string>
 </resources>

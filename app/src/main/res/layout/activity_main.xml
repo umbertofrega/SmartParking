@@ -24,7 +24,7 @@
         android:id="@+id/btn_park"
         android:layout_width="300dp"
         android:layout_height="100dp"
-        android:text="@string/comincia_a_parcheggiare"
+        android:text="@string/start_parking"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -36,7 +36,7 @@
         android:layout_width="300dp"
         android:layout_height="70dp"
         android:layout_marginTop="24dp"
-        android:text="@string/visualizza_storico"
+        android:text="@string/see_history"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/btn_park" />
