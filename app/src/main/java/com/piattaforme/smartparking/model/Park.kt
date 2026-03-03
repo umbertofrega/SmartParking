@@ -4,7 +4,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 @Entity(tableName = "history")
-data class ParkingHistory(
+data class Park(
     @PrimaryKey(autoGenerate = true)
     var id: Int = 0,
     val latitude: Float,

@@ -9,10 +9,10 @@ import androidx.room.Query
 interface ParkingHistoryDao {
 
     @Insert
-    fun insert(parking: ParkingHistory)
+    fun insert(parking: Park)
 
     @Query("SELECT * FROM history ORDER BY id")
-    fun getAllHistory() : LiveData<List<ParkingHistory>>
+    fun getAllHistory() : LiveData<List<Park>>
 
     @Query("DELETE FROM history")
     fun deleteAllHistory()
