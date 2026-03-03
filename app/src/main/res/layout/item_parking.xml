@@ -23,7 +23,7 @@
             android:id="@+id/tv_parking_note"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Nota Parcheggio"
+            android:text="@string/spot_note"
             android:textSize="18sp"
             android:textStyle="bold"
             android:textColor="#000000"/>

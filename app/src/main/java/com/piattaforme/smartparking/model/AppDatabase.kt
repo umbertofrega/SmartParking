@@ -6,10 +6,10 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.driver.AndroidSQLiteDriver
 
-@Database(entities = [Park::class], version = 1, exportSchema = false)
+@Database(entities = [Spots::class], version = 1, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
 
-    abstract fun parkingDao(): ParkingHistoryDao
+    abstract fun parkingDao(): SpotsHistoryDao
 
     companion object {
         @Volatile
