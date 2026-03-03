@@ -22,7 +22,9 @@ import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 import androidx.core.content.edit
-import com.piattaforme.smartparking.model.DatabaseHelper
+import androidx.lifecycle.ViewModelProvider
+import com.piattaforme.smartparking.model.Park
+import com.piattaforme.smartparking.model.ParkingHistoryViewModel
 
 class MapActivity : AppCompatActivity(), LocationListener {
     val locationPermissionCode = 100
@@ -134,9 +136,6 @@ class MapActivity : AppCompatActivity(), LocationListener {
 
     fun parkHere() {
         if (::marker.isInitialized) {
-            val lat = marker.position.latitude
-            val lon = marker.position.longitude
-
             val inputTesto = EditText(this)
             inputTesto.hint = "Es: Via Roma 15, strisce blu..."
 
@@ -154,20 +153,21 @@ class MapActivity : AppCompatActivity(), LocationListener {
 
                     val finalText = userNote.ifBlank { "Posizione salvata" }
 
+                    val parking = Park(latitude = marker.position.latitude.toFloat(), longitude = marker.position.longitude.toFloat(), note = finalText)
+
                     val prefs = applicationContext.getSharedPreferences("SmartParkingData", MODE_PRIVATE)
                     prefs.edit {
-                        putFloat("PARK_LAT", lat.toFloat())
-                        putFloat("PARK_LON", lon.toFloat())
+                        putFloat("PARK_LAT", parking.latitude)
+                        putFloat("PARK_LON", parking.longitude)
                         putBoolean("IS_PARKED", true)
                     }
 
-                    val dbHelper = DatabaseHelper(this)
-                    val success = dbHelper.insertParking(lat.toFloat(), lon.toFloat(), finalText)
+                    val historyViewModel = ViewModelProvider(this)[ParkingHistoryViewModel::class.java]
+                    val success = historyViewModel.insertParking(parking)
 
-                    if (success) {
-                        Toast.makeText(this, "Parcheggio salvato con successo!", Toast.LENGTH_SHORT).show()
+                    if(success) {
+                        Toast.makeText(this, "Posizione salvata con successo", Toast.LENGTH_SHORT).show()
                     }
-
                     dialog.dismiss()
                 }
                 .setNegativeButton("Annulla") { dialog, _ ->
