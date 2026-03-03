@@ -136,47 +136,51 @@ class MapActivity : AppCompatActivity(), LocationListener {
 
     fun parkHere() {
         if (::marker.isInitialized) {
-            val inputTesto = EditText(this)
-            inputTesto.hint = "Es: Via Roma 15, strisce blu..."
+            val textInput = EditText(this)
+            textInput.hint = this.getString(R.string.alert_hint)
 
             val layout = LinearLayout(this)
             layout.setPadding(50, 20, 50, 20)
-            layout.addView(inputTesto)
+            layout.addView(textInput)
 
-            AlertDialog.Builder(this)
-                .setTitle(this.getString(R.string.alert_title))
-                .setMessage(this.getString(R.string.alert_message))
-                .setView(layout)
-                .setPositiveButton(this.getString(R.string.alert_button)) { dialog, _ ->
+            buildDialog(layout,textInput).show()
 
-                    val userNote = inputTesto.text.toString()
-
-                    val finalText = userNote.ifBlank { this.getString(R.string.alert_saved_position) }
-
-                    val parking = Spots(latitude = marker.position.latitude.toFloat(), longitude = marker.position.longitude.toFloat(), note = finalText)
-
-                    val prefs = applicationContext.getSharedPreferences("SmartParkingData", MODE_PRIVATE)
-                    prefs.edit {
-                        putFloat("PARK_LAT", parking.latitude)
-                        putFloat("PARK_LON", parking.longitude)
-                        putBoolean("IS_PARKED", true)
-                    }
-
-                    val historyViewModel = ViewModelProvider(this)[SpotsHistoryViewModel::class.java]
-                    val success = historyViewModel.insertParking(parking)
-
-                    if(success) {
-                        Toast.makeText(this, this.getString(R.string.saved_success), Toast.LENGTH_SHORT).show()
-                    }
-                    dialog.dismiss()
-                }
-                .setNegativeButton(this.getString(R.string.alert_cancel)) { dialog, _ ->
-                    dialog.cancel()
-                }
-                .show()
 
         } else {
             Toast.makeText(this, this.getString(R.string.alert_wait), Toast.LENGTH_SHORT).show()
         }
+    }
+    
+    private fun buildDialog(layout: LinearLayout, textInput: EditText): AlertDialog{
+        return AlertDialog.Builder(this)
+            .setTitle(this.getString(R.string.alert_title))
+            .setMessage(this.getString(R.string.alert_message))
+            .setView(layout)
+            .setPositiveButton(this.getString(R.string.alert_button)) { dialog, _ ->
+
+                val userNote = textInput.text.toString()
+
+                val finalText = userNote.ifBlank { this.getString(R.string.alert_saved_position) }
+
+                val parking = Spots(latitude = marker.position.latitude.toFloat(), longitude = marker.position.longitude.toFloat(), note = finalText)
+
+                val prefs = applicationContext.getSharedPreferences("SmartParkingData", MODE_PRIVATE)
+                prefs.edit {
+                    putFloat("PARK_LAT", parking.latitude)
+                    putFloat("PARK_LON", parking.longitude)
+                    putBoolean("IS_PARKED", true)
+                }
+
+                val historyViewModel = ViewModelProvider(this)[SpotsHistoryViewModel::class.java]
+                val success = historyViewModel.insertParking(parking)
+
+                if(success) {
+                    Toast.makeText(this, this.getString(R.string.saved_success), Toast.LENGTH_SHORT).show()
+                }
+                dialog.dismiss()
+            }
+            .setNegativeButton(this.getString(R.string.alert_cancel)) { dialog, _ ->
+                dialog.cancel()
+            }.create()
     }
 }
