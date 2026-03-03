@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="16dp"
+    android:layout_margin="8dp"
+    android:background="#F0F0F0">
+    <ImageView
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:src="@android:drawable/ic_menu_mylocation"
+        android:layout_gravity="center_vertical"
+        android:layout_marginEnd="16dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/tv_parking_note"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Nota Parcheggio"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#000000"/>
+
+        <TextView
+            android:id="@+id/tv_parking_coords"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Lat: 0.0, Lon: 0.0"
+            android:textSize="14sp"
+            android:textColor="#666666"/>
+    </LinearLayout>
+
+</LinearLayout>

@@ -22,6 +22,7 @@ import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 import androidx.core.content.edit
+import com.piattaforme.smartparking.model.DatabaseHelper
 
 class MapActivity : AppCompatActivity(), LocationListener {
     val locationPermissionCode = 100
