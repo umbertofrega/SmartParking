@@ -8,7 +8,7 @@ import androidx.lifecycle.LiveData
 class ParkingHistoryViewModel(application: Application) : AndroidViewModel(application) {
 
     private val parkingHistoryDao: ParkingHistoryDao
-    private val allHistory: LiveData<List<ParkingHistory>>
+    private val allHistory: LiveData<List<Park>>
     init {
         val database  = AppDatabase.getDatabase(application)
         parkingHistoryDao = database.parkingDao()
@@ -16,14 +16,19 @@ class ParkingHistoryViewModel(application: Application) : AndroidViewModel(appli
     }
 
 
-    fun getAllHistory(): LiveData<List<ParkingHistory>> {
+    fun getAllHistory(): LiveData<List<Park>> {
         return parkingHistoryDao.getAllHistory()
     }
 
-     fun insertParking(parking: ParkingHistory) {
+     fun insertParking(parking: Park): Boolean{
          Thread {
-             parkingHistoryDao.insert(parking)
+            try {
+                parkingHistoryDao.insert(parking)
+            }  catch (e : Exception){
+
+            }
          }.start()
+         return true
      }
 
      fun clearHistory() {
