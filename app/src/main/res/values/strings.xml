@@ -14,4 +14,5 @@
     <string name="alert_wait">In attesa del GPS…</string>
     <string name="spot_note">Nota Parcheggio</string>
     <string name="alert_hint">Via Roma 15, Parcheggio Bar…</string>
+    <string name="btn_empty">Svuota</string>
 </resources>
