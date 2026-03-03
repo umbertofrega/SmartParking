@@ -4,8 +4,9 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.sqlite.driver.AndroidSQLiteDriver
 
-@Database(entities = [ParkingHistory::class], version = 1, exportSchema = false)
+@Database(entities = [Park::class], version = 1, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun parkingDao(): ParkingHistoryDao
@@ -16,7 +17,8 @@ abstract class AppDatabase : RoomDatabase() {
 
         fun getDatabase(context: Context): AppDatabase {
             return INSTANCE?: synchronized(this){
-                val instance = Room.databaseBuilder<AppDatabase>(name = "history_database").build()
+                val driver = AndroidSQLiteDriver()
+                val instance = Room.databaseBuilder<AppDatabase>(context.applicationContext,"history_database").setDriver(driver).build()
                 INSTANCE = instance
                 instance
             }
