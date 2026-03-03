@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -42,8 +43,10 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.osmdroid)
-    implementation(libs.androidx.room.common.jvm)
-    implementation(libs.androidx.room.runtime.jvm)
+    implementation(libs.androidx.room.common)
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.sqlite.framework)
+    ksp(libs.androidx.room.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
