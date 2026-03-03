@@ -1,12 +1,15 @@
 package com.piattaforme.smartparking
 
 import android.Manifest
+import android.app.AlertDialog
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
 import android.widget.Button
+import android.widget.EditText
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -128,25 +131,51 @@ class MapActivity : AppCompatActivity(), LocationListener {
         }
     }
 
-    fun parkHere(){
-        if(::marker.isInitialized) {
-            val parkingLatitude = marker.position.latitude.toFloat()
-            val parkingLongitude = marker.position.longitude.toFloat()
+    fun parkHere() {
+        if (::marker.isInitialized) {
+            val lat = marker.position.latitude
+            val lon = marker.position.longitude
 
-            val prefs = applicationContext.getSharedPreferences("SmartParkingData", MODE_PRIVATE)
-            prefs.edit {
-                putFloat("PARK_LAT", parkingLatitude)
-                putFloat("PARK_LON", parkingLongitude)
+            val inputTesto = EditText(this)
+            inputTesto.hint = "Es: Via Roma 15, strisce blu..."
 
-                putBoolean("IS_PARKED", true)
-            }
-            val dbHelper = DatabaseHelper(this)
+            val layout = LinearLayout(this)
+            layout.setPadding(50, 20, 50, 20)
+            layout.addView(inputTesto)
 
-            dbHelper.insertParking(parkingLatitude,parkingLongitude)
-            Toast.makeText(this, "Posizione salvata con successo!", Toast.LENGTH_LONG).show()
+            AlertDialog.Builder(this)
+                .setTitle("Dove hai parcheggiato?")
+                .setMessage("Inserisci un riferimento per ritrovare l'auto:")
+                .setView(layout)
+                .setPositiveButton("Salva Parcheggio") { dialog, _ ->
+
+                    val userNote = inputTesto.text.toString()
+
+                    val finalText = userNote.ifBlank { "Posizione salvata" }
+
+                    val prefs = applicationContext.getSharedPreferences("SmartParkingData", MODE_PRIVATE)
+                    prefs.edit {
+                        putFloat("PARK_LAT", lat.toFloat())
+                        putFloat("PARK_LON", lon.toFloat())
+                        putBoolean("IS_PARKED", true)
+                    }
+
+                    val dbHelper = DatabaseHelper(this)
+                    val success = dbHelper.insertParking(lat.toFloat(), lon.toFloat(), finalText)
+
+                    if (success) {
+                        Toast.makeText(this, "Parcheggio salvato con successo!", Toast.LENGTH_SHORT).show()
+                    }
+
+                    dialog.dismiss()
+                }
+                .setNegativeButton("Annulla") { dialog, _ ->
+                    dialog.cancel()
+                }
+                .show()
+
+        } else {
+            Toast.makeText(this, "Attendi il segnale GPS...", Toast.LENGTH_SHORT).show()
         }
     }
-
-
-
 }
