@@ -15,16 +15,16 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.edit
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.ViewModelProvider
+import com.piattaforme.smartparking.model.Spots
+import com.piattaforme.smartparking.model.SpotsHistoryViewModel
 import org.osmdroid.config.Configuration
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
-import androidx.core.content.edit
-import androidx.lifecycle.ViewModelProvider
-import com.piattaforme.smartparking.model.Spots
-import com.piattaforme.smartparking.model.SpotsHistoryViewModel
 
 class MapActivity : AppCompatActivity(), LocationListener {
     val locationPermissionCode = 100
@@ -60,6 +60,20 @@ class MapActivity : AppCompatActivity(), LocationListener {
         mapView.setMultiTouchControls(true)
         mapView.controller.setZoom(18.0)
 
+
+        requestLocationManagerUpdates()
+
+        val prefs = applicationContext.getSharedPreferences("SmartParkingData", MODE_PRIVATE)
+        if(prefs.getBoolean("IS_PARKED", false)){
+            val parkingLatitude = prefs.getFloat("PARK_LAT",0.toFloat()).toDouble()
+            val parkingLongitude = prefs.getFloat("PARK_LON",0.toFloat()).toDouble()
+            val parking = createMarker(parkingLatitude,parkingLongitude,"Parked Here")
+            mapView.overlays.add(parking)
+            mapView.invalidate()
+        }
+    }
+
+    private fun requestLocationManagerUpdates(){
         locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
         val requestLocationPermission =
             ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -77,15 +91,6 @@ class MapActivity : AppCompatActivity(), LocationListener {
                 10f,
                 this
             )
-        }
-
-        val prefs = applicationContext.getSharedPreferences("SmartParkingData", MODE_PRIVATE)
-        if(prefs.getBoolean("IS_PARKED", false)){
-            val parkingLatitude = prefs.getFloat("PARK_LAT",0.toFloat()).toDouble()
-            val parkingLongitude = prefs.getFloat("PARK_LON",0.toFloat()).toDouble()
-            val parking = createMarker(parkingLatitude,parkingLongitude,"Parked Here")
-            mapView.overlays.add(parking)
-            mapView.invalidate()
         }
     }
 
@@ -182,5 +187,19 @@ class MapActivity : AppCompatActivity(), LocationListener {
             .setNegativeButton(this.getString(R.string.alert_cancel)) { dialog, _ ->
                 dialog.cancel()
             }.create()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        mapView.onPause()
+
+        locationManager.removeUpdates(this)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        mapView.onResume()
+
+        requestLocationManagerUpdates()
     }
 }
