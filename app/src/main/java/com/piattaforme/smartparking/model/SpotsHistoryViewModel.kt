@@ -28,14 +28,15 @@ class SpotsHistoryViewModel(application: Application) : AndroidViewModel(applica
     }
 
      fun insertParking(parking: Spots): Boolean{
+         var success = true
          viewModelScope.launch(Dispatchers.IO) {
             try {
                 spotsHistoryDao.insert(parking)
-            }  catch (e : Exception){
-                //TODO
+            }  catch (_ : Exception){
+                success = false
             }
          }
-         return true
+         return success
      }
 
      fun clearHistory() {
