@@ -1,7 +1,11 @@
 package com.piattaforme.smartparking.activities
 
 import android.Manifest
+import android.annotation.SuppressLint
+import android.app.AlarmManager
 import android.app.AlertDialog
+import android.app.PendingIntent
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationListener
@@ -10,6 +14,8 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
+import android.widget.TextView
+import android.widget.TimePicker
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -21,6 +27,8 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.piattaforme.smartparking.R
+import com.piattaforme.smartparking.activities.support.MapDialogDirector
+import com.piattaforme.smartparking.activities.support.SpotNotificationReceiver
 import com.piattaforme.smartparking.model.Spots
 import com.piattaforme.smartparking.model.SpotsHistoryViewModel
 import kotlinx.coroutines.launch
@@ -34,7 +42,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
     private lateinit var mapView: MapView
     private lateinit var  locationManager : LocationManager
     private var marker : Marker? = null
-    private val historyViewModel: SpotsHistoryViewModel = ViewModelProvider(this)[SpotsHistoryViewModel::class.java]
+    private lateinit var historyViewModel: SpotsHistoryViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,27 +68,67 @@ class MapActivity : AppCompatActivity(), LocationListener {
 
     fun parkHere() {
         if (marker != null) {
-            val textInput = EditText(this)
-            textInput.hint = this.getString(R.string.alert_hint)
+            val (layout, textInput, timePicker) = createLayout()
 
-            val layout = LinearLayout(this)
-            layout.setPadding(50, 20, 50, 20)
-            layout.addView(textInput)
+            val director = MapDialogDirector()
 
-            showDialog(layout, textInput)
+            director.makeDialog(layout, this, AlertDialog.Builder(this)) {
+
+                saveSpot(textInput)
+
+                val calendar = java.util.Calendar.getInstance().apply {
+                    set(java.util.Calendar.HOUR_OF_DAY, timePicker.hour)
+                    set(java.util.Calendar.MINUTE, timePicker.minute)
+                    set(java.util.Calendar.SECOND, 0)
+                }
+
+                if (calendar.before(java.util.Calendar.getInstance())) {
+                    calendar.add(java.util.Calendar.DAY_OF_YEAR, 1)
+                }
+
+                setAlarm(calendar.timeInMillis)
+            }
+
+            director.getResult().show()
 
         } else {
             Toast.makeText(this, this.getString(R.string.alert_wait), Toast.LENGTH_SHORT).show()
         }
     }
 
-    fun showDialog(layout: LinearLayout, textInput : EditText) {
-        val director = MapDialogDirector()
-        director.makeDialog(layout, applicationContext, AlertDialog.Builder(applicationContext)) {
-            saveSpot(textInput)
-        }
-        val dialog = director.getResult()
-        dialog.show()
+    private fun createLayout(): Triple<LinearLayout, EditText, TimePicker> {
+        val layout = LinearLayout(this)
+        layout.orientation = LinearLayout.VERTICAL
+        layout.setPadding(50, 20, 50, 20)
+
+        val textView = TextView(this)
+        textView.text = this.getString(R.string.timer_text)
+
+        val textInput = EditText(this)
+        textInput.hint = this.getString(R.string.alert_hint)
+
+        val timePicker = TimePicker(this)
+        timePicker.setIs24HourView(true)
+
+        layout.addView(textInput)
+        layout.addView(textView)
+        layout.addView(timePicker)
+
+        return Triple(layout, textInput, timePicker)
+    }
+
+    @SuppressLint("ScheduleExactAlarm")
+    private fun setAlarm(time : Long){
+        val alarmManager = this.getSystemService(ALARM_SERVICE) as AlarmManager
+
+
+        val pendingIntent = PendingIntent.getBroadcast(
+            this, 101,
+            Intent(this, SpotNotificationReceiver::class.java),
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+
+        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, time, pendingIntent)
+
     }
 
     private fun saveSpot(textInput: EditText) {
@@ -103,6 +151,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
             putFloat("PARK_LON", parking.longitude)
             putBoolean("IS_PARKED", true)
         }
+        historyViewModel = ViewModelProvider(this)[SpotsHistoryViewModel::class.java]
         lifecycleScope.launch {
          val success = historyViewModel.insertParking(parking)
 
@@ -118,7 +167,6 @@ class MapActivity : AppCompatActivity(), LocationListener {
         mapView = findViewById(R.id.osmdroid_map)
         mapView.setMultiTouchControls(true)
         mapView.controller.setZoom(18.0)
-
 
         requestLocationManagerUpdates()
 
@@ -196,7 +244,6 @@ class MapActivity : AppCompatActivity(), LocationListener {
             }
         }
     }
-
 
     override fun onPause() {
         super.onPause()
