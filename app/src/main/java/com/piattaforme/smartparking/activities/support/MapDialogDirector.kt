@@ -1,22 +1,22 @@
-package com.piattaforme.smartparking.activities
+package com.piattaforme.smartparking.activities.support
 
 import android.app.AlertDialog
 import android.content.Context
 import android.widget.LinearLayout
 import com.piattaforme.smartparking.R
 
-class MapDialogDirector() {
+class MapDialogDirector {
 
     private lateinit var dialog : AlertDialog
     private lateinit var dialogBuilder: AlertDialog.Builder
-    public fun makeDialog(layout : LinearLayout, context : Context,  dialogBuilder: AlertDialog.Builder, onConfirm: () -> Unit) {
+    public fun makeDialog(layout : LinearLayout, context : Context, dialogBuilder: AlertDialog.Builder, onConfirm: () -> Unit) {
         this.dialogBuilder = dialogBuilder
         initialSetup(layout, context)
         addButtons(context, onConfirm)
         this.dialog = this.dialogBuilder.create()
     }
 
-    public fun getResult() : AlertDialog{
+    public fun getResult() : AlertDialog {
         return this.dialog
     }
 
@@ -27,7 +27,7 @@ class MapDialogDirector() {
     }
 
     private fun addButtons(context: Context, onConfirm: () -> Unit ){
-        this.dialogBuilder.setPositiveButton(context.getString(R.string.alert_button)) { _ , _ ->
+        this.dialogBuilder.setPositiveButton(context.getString(R.string.alert_button)) { _, _ ->
 
             onConfirm()
 
