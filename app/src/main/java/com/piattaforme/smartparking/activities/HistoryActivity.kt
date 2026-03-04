@@ -1,4 +1,4 @@
-package com.piattaforme.smartparking
+package com.piattaforme.smartparking.activities
 
 import android.os.Bundle
 import android.widget.Button
@@ -9,6 +9,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.piattaforme.smartparking.R
 import com.piattaforme.smartparking.model.SpotAdapter
 import com.piattaforme.smartparking.model.SpotsHistoryViewModel
 
@@ -33,7 +34,6 @@ class HistoryActivity : AppCompatActivity() {
         }
 
         showHistory()
-
     }
 
     fun showHistory(){

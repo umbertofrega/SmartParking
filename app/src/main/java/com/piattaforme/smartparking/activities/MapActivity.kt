@@ -1,4 +1,4 @@
-package com.piattaforme.smartparking
+package com.piattaforme.smartparking.activities
 
 import android.Manifest
 import android.app.AlertDialog
@@ -19,6 +19,7 @@ import androidx.core.content.edit
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
+import com.piattaforme.smartparking.R
 import com.piattaforme.smartparking.model.Spots
 import com.piattaforme.smartparking.model.SpotsHistoryViewModel
 import org.osmdroid.config.Configuration
