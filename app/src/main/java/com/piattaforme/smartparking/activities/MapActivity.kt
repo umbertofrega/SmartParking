@@ -1,11 +1,7 @@
 package com.piattaforme.smartparking.activities
 
 import android.Manifest
-import android.annotation.SuppressLint
-import android.app.AlarmManager
 import android.app.AlertDialog
-import android.app.PendingIntent
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationListener
@@ -27,7 +23,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.piattaforme.smartparking.R
 import com.piattaforme.smartparking.activities.support.MapDialogDirector
-import com.piattaforme.smartparking.activities.support.SpotNotificationReceiver
+import com.piattaforme.smartparking.activities.support.SpotAlarmScheduler
 import com.piattaforme.smartparking.model.SpotsHistoryViewModel
 import kotlinx.coroutines.launch
 import org.osmdroid.config.Configuration
@@ -84,7 +80,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
                     calendar.add(java.util.Calendar.DAY_OF_YEAR, 1)
                 }
 
-                setAlarm(calendar.timeInMillis)
+                SpotAlarmScheduler(this).setAlarm(calendar.timeInMillis)
             }
 
             director.getResult().show()
@@ -113,20 +109,6 @@ class MapActivity : AppCompatActivity(), LocationListener {
         layout.addView(timePicker)
 
         return Triple(layout, textInput, timePicker)
-    }
-
-    @SuppressLint("ScheduleExactAlarm")
-    private fun setAlarm(time : Long){
-        val alarmManager = this.getSystemService(ALARM_SERVICE) as AlarmManager
-
-
-        val pendingIntent = PendingIntent.getBroadcast(
-            this, 101,
-            Intent(this, SpotNotificationReceiver::class.java),
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
-
-        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, time, pendingIntent)
-
     }
 
     private fun saveSpot(textInput: EditText) {
