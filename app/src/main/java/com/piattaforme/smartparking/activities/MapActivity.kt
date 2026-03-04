@@ -31,7 +31,6 @@ class MapActivity : AppCompatActivity(), LocationListener {
     val locationPermissionCode = 100
     private lateinit var mapView: MapView
     private lateinit var  locationManager : LocationManager
-
     private lateinit var marker : Marker
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,7 +52,58 @@ class MapActivity : AppCompatActivity(), LocationListener {
 
         val parkListener: Button = findViewById(R.id.btn_park_here)
         
-        parkListener.setOnClickListener{ parkHere()}
+        parkListener.setOnClickListener{ parkHere() }
+    }
+
+    fun parkHere() {
+        if (::marker.isInitialized) {
+            val textInput = EditText(this)
+            textInput.hint = this.getString(R.string.alert_hint)
+
+            val layout = LinearLayout(this)
+            layout.setPadding(50, 20, 50, 20)
+            layout.addView(textInput)
+
+            showDialog(layout, textInput)
+
+        } else {
+            Toast.makeText(this, this.getString(R.string.alert_wait), Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    fun showDialog(layout: LinearLayout, textInput : EditText) {
+        val director = MapDialogDirector()
+        director.makeDialog(layout, applicationContext, AlertDialog.Builder(applicationContext)) {
+            saveSpot(textInput)
+        }
+        val dialog = director.getResult()
+        dialog.show()
+    }
+
+    private fun saveSpot(textInput: EditText) {
+        val userNote = textInput.text.toString()
+
+        val finalText = userNote.ifBlank { this.getString(R.string.alert_saved_position) }
+
+        val parking = Spots(
+            latitude = marker.position.latitude.toFloat(),
+            longitude = marker.position.longitude.toFloat(),
+            note = finalText
+        )
+
+        val prefs = applicationContext.getSharedPreferences("SmartParkingData", MODE_PRIVATE)
+        prefs.edit {
+            putFloat("PARK_LAT", parking.latitude)
+            putFloat("PARK_LON", parking.longitude)
+            putBoolean("IS_PARKED", true)
+        }
+
+        val historyViewModel = ViewModelProvider(this)[SpotsHistoryViewModel::class.java]
+        val success = historyViewModel.insertParking(parking)
+
+        if (success) {
+            Toast.makeText(this, this.getString(R.string.saved_success), Toast.LENGTH_SHORT).show()
+        }
     }
 
     fun initMap() {
@@ -118,7 +168,6 @@ class MapActivity : AppCompatActivity(), LocationListener {
 
         newMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
 
-
         newMarker.title = title
 
         return newMarker
@@ -140,55 +189,6 @@ class MapActivity : AppCompatActivity(), LocationListener {
         }
     }
 
-    fun parkHere() {
-        if (::marker.isInitialized) {
-            val textInput = EditText(this)
-            textInput.hint = this.getString(R.string.alert_hint)
-
-            val layout = LinearLayout(this)
-            layout.setPadding(50, 20, 50, 20)
-            layout.addView(textInput)
-
-            buildDialog(layout,textInput).show()
-
-
-        } else {
-            Toast.makeText(this, this.getString(R.string.alert_wait), Toast.LENGTH_SHORT).show()
-        }
-    }
-    
-    private fun buildDialog(layout: LinearLayout, textInput: EditText): AlertDialog{
-        return AlertDialog.Builder(this)
-            .setTitle(this.getString(R.string.alert_title))
-            .setMessage(this.getString(R.string.alert_message))
-            .setView(layout)
-            .setPositiveButton(this.getString(R.string.alert_button)) { dialog, _ ->
-
-                val userNote = textInput.text.toString()
-
-                val finalText = userNote.ifBlank { this.getString(R.string.alert_saved_position) }
-
-                val parking = Spots(latitude = marker.position.latitude.toFloat(), longitude = marker.position.longitude.toFloat(), note = finalText)
-
-                val prefs = applicationContext.getSharedPreferences("SmartParkingData", MODE_PRIVATE)
-                prefs.edit {
-                    putFloat("PARK_LAT", parking.latitude)
-                    putFloat("PARK_LON", parking.longitude)
-                    putBoolean("IS_PARKED", true)
-                }
-
-                val historyViewModel = ViewModelProvider(this)[SpotsHistoryViewModel::class.java]
-                val success = historyViewModel.insertParking(parking)
-
-                if(success) {
-                    Toast.makeText(this, this.getString(R.string.saved_success), Toast.LENGTH_SHORT).show()
-                }
-                dialog.dismiss()
-            }
-            .setNegativeButton(this.getString(R.string.alert_cancel)) { dialog, _ ->
-                dialog.cancel()
-            }.create()
-    }
 
     override fun onPause() {
         super.onPause()
