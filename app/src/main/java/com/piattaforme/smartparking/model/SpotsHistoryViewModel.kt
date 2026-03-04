@@ -2,43 +2,37 @@ package com.piattaforme.smartparking.model
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.asLiveData
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 
 class SpotsHistoryViewModel(application: Application) : AndroidViewModel(application) {
 
     private val spotsHistoryDao: SpotsHistoryDao
-    private lateinit var allHistory : List<Spots>
+    private var allHistory : LiveData<List<Spots>>
     init {
         val database  = AppDatabase.getDatabase(application)
         spotsHistoryDao = database.parkingDao()
-        viewModelScope.launch(Dispatchers.IO) {
-            allHistory = spotsHistoryDao.getAllHistory()
-        }
+        this.allHistory = spotsHistoryDao.getAllHistory().asLiveData()
     }
 
 
-    fun getAllHistory(): List<Spots> {
-        viewModelScope.launch(Dispatchers.IO) {
-            allHistory = spotsHistoryDao.getAllHistory()
-        }
-        return allHistory
+    fun getAllHistory(): LiveData<List<Spots>> {
+        return this.allHistory
     }
 
-     fun insertParking(parking: Spots): Boolean{
-         var success = true
-         viewModelScope.launch(Dispatchers.IO) {
+    suspend fun insertParking(parking: Spots): Boolean {
+        return withContext(Dispatchers.IO) {
             try {
                 spotsHistoryDao.insert(parking)
-            }  catch (_ : Exception){
-                success = false
+                true
+            } catch (_: Exception) {
+                false
             }
-         }
-         return success
-     }
-
+        }
+    }
      fun clearHistory() {
         spotsHistoryDao.deleteAllHistory()
     }

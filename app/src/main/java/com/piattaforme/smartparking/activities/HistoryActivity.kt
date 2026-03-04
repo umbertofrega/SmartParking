@@ -45,6 +45,9 @@ class HistoryActivity : AppCompatActivity() {
 
         recyclerView.adapter = adapter
 
-        adapter.setData(viewModel.getAllHistory())
+        viewModel.getAllHistory().observe(this) { updatedList ->
+            adapter.setData(updatedList)
+            adapter.notifyDataSetChanged()
+        }
     }
 }

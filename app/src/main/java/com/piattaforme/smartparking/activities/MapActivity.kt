@@ -19,9 +19,11 @@ import androidx.core.content.edit
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.piattaforme.smartparking.R
 import com.piattaforme.smartparking.model.Spots
 import com.piattaforme.smartparking.model.SpotsHistoryViewModel
+import kotlinx.coroutines.launch
 import org.osmdroid.config.Configuration
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
@@ -31,7 +33,8 @@ class MapActivity : AppCompatActivity(), LocationListener {
     val locationPermissionCode = 100
     private lateinit var mapView: MapView
     private lateinit var  locationManager : LocationManager
-    private lateinit var marker : Marker
+    private var marker : Marker? = null
+    private val historyViewModel: SpotsHistoryViewModel = ViewModelProvider(this)[SpotsHistoryViewModel::class.java]
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,7 +59,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
     }
 
     fun parkHere() {
-        if (::marker.isInitialized) {
+        if (marker != null) {
             val textInput = EditText(this)
             textInput.hint = this.getString(R.string.alert_hint)
 
@@ -81,13 +84,16 @@ class MapActivity : AppCompatActivity(), LocationListener {
     }
 
     private fun saveSpot(textInput: EditText) {
+        if(marker == null)
+            return
+
         val userNote = textInput.text.toString()
 
         val finalText = userNote.ifBlank { this.getString(R.string.alert_saved_position) }
 
         val parking = Spots(
-            latitude = marker.position.latitude.toFloat(),
-            longitude = marker.position.longitude.toFloat(),
+            latitude = marker!!.position.latitude.toFloat(),
+            longitude = marker!!.position.longitude.toFloat(),
             note = finalText
         )
 
@@ -97,12 +103,14 @@ class MapActivity : AppCompatActivity(), LocationListener {
             putFloat("PARK_LON", parking.longitude)
             putBoolean("IS_PARKED", true)
         }
+        lifecycleScope.launch {
+         val success = historyViewModel.insertParking(parking)
 
-        val historyViewModel = ViewModelProvider(this)[SpotsHistoryViewModel::class.java]
-        val success = historyViewModel.insertParking(parking)
-
-        if (success) {
-            Toast.makeText(this, this.getString(R.string.saved_success), Toast.LENGTH_SHORT).show()
+            if (success) {
+                Toast.makeText(this@MapActivity, getString(R.string.saved_success), Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(this@MapActivity, "Errore durante il salvataggio", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -148,7 +156,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
     override fun onLocationChanged(location: Location){
         val geoPoint = GeoPoint(location.latitude,location.longitude)
 
-        if (::marker.isInitialized) {
+        if (marker != null) {
             mapView.overlays.remove(marker)
         }
 
