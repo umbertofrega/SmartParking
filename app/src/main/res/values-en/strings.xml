@@ -17,4 +17,7 @@
     <string name="alert_hint">Route 66,Parking Lot 12…</string>
     <string name="btn_empty">Empty</string>
     <string name="saved_fail">Error while saving the spot</string>
+    <string name="timer_text">Set a timer if you want!</string>
+    <string name="notification_title">Spot expired!</string>
+    <string name="notification_text">The time that you requested has come</string>
 </resources>
