@@ -15,4 +15,5 @@
     <string name="spot_note">Nota Parcheggio</string>
     <string name="alert_hint">Via Roma 15, Parcheggio Bar…</string>
     <string name="btn_empty">Svuota</string>
+    <string name="saved_fail">Errore nel salvataggio del parcheggio</string>
 </resources>

@@ -16,4 +16,5 @@
     <string name="spot_note">Spot note</string>
     <string name="alert_hint">Route 66,Parking Lot 12…</string>
     <string name="btn_empty">Empty</string>
+    <string name="saved_fail">Error while saving the spot</string>
 </resources>

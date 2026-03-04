@@ -109,7 +109,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
             if (success) {
                 Toast.makeText(this@MapActivity, getString(R.string.saved_success), Toast.LENGTH_SHORT).show()
             } else {
-                Toast.makeText(this@MapActivity, "Errore durante il salvataggio", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@MapActivity, getString(R.string.saved_fail), Toast.LENGTH_SHORT).show()
             }
         }
     }
