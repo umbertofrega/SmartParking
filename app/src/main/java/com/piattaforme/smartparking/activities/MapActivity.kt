@@ -21,7 +21,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.content.edit
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
@@ -29,7 +28,6 @@ import androidx.lifecycle.lifecycleScope
 import com.piattaforme.smartparking.R
 import com.piattaforme.smartparking.activities.support.MapDialogDirector
 import com.piattaforme.smartparking.activities.support.SpotNotificationReceiver
-import com.piattaforme.smartparking.model.Spots
 import com.piattaforme.smartparking.model.SpotsHistoryViewModel
 import kotlinx.coroutines.launch
 import org.osmdroid.config.Configuration
@@ -132,33 +130,24 @@ class MapActivity : AppCompatActivity(), LocationListener {
     }
 
     private fun saveSpot(textInput: EditText) {
-        if(marker == null)
-            return
-
         val userNote = textInput.text.toString()
 
         val finalText = userNote.ifBlank { this.getString(R.string.alert_saved_position) }
 
-        val parking = Spots(
-            latitude = marker!!.position.latitude.toFloat(),
-            longitude = marker!!.position.longitude.toFloat(),
-            note = finalText
-        )
-
-        val prefs = applicationContext.getSharedPreferences("SmartParkingData", MODE_PRIVATE)
-        prefs.edit {
-            putFloat("PARK_LAT", parking.latitude)
-            putFloat("PARK_LON", parking.longitude)
-            putBoolean("IS_PARKED", true)
-        }
         historyViewModel = ViewModelProvider(this)[SpotsHistoryViewModel::class.java]
-        lifecycleScope.launch {
-         val success = historyViewModel.insertParking(parking)
 
-            if (success) {
-                Toast.makeText(this@MapActivity, getString(R.string.saved_success), Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(this@MapActivity, getString(R.string.saved_fail), Toast.LENGTH_SHORT).show()
+        if(marker != null) {
+            lifecycleScope.launch {
+                val success = historyViewModel.saveSpot(
+                    marker!!.position.latitude.toFloat(),
+                    marker!!.position.longitude.toFloat(),
+                    finalText
+                )
+                if (success) {
+                    Toast.makeText(this@MapActivity, getString(R.string.saved_success), Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this@MapActivity, getString(R.string.saved_fail), Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
