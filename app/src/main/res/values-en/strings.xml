@@ -20,4 +20,5 @@
     <string name="timer_text">Set a timer if you want!</string>
     <string name="notification_title">Spot expired!</string>
     <string name="notification_text">The time that you requested has come</string>
+    <string name="timer_permission">Per favore, autorizza le sveglie esatte per i parcheggi</string>
 </resources>

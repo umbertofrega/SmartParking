@@ -1,12 +1,16 @@
 package com.piattaforme.smartparking.activities
 
 import android.Manifest
+import android.app.AlarmManager
 import android.app.AlertDialog
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
+import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
@@ -14,6 +18,7 @@ import android.widget.TextView
 import android.widget.TimePicker
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -38,6 +43,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
     private var marker : Marker? = null
     private lateinit var historyViewModel: SpotsHistoryViewModel
 
+    @RequiresApi(Build.VERSION_CODES.S)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -60,6 +66,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
         parkListener.setOnClickListener{ parkHere() }
     }
 
+    @RequiresApi(Build.VERSION_CODES.S)
     fun parkHere() {
         if (marker != null) {
             val (layout, textInput, timePicker) = createLayout()
@@ -80,7 +87,15 @@ class MapActivity : AppCompatActivity(), LocationListener {
                     calendar.add(java.util.Calendar.DAY_OF_YEAR, 1)
                 }
 
-                SpotAlarmScheduler(this).setAlarm(calendar.timeInMillis)
+                val alarmManager = this.getSystemService(ALARM_SERVICE) as AlarmManager
+                if(alarmManager.canScheduleExactAlarms()){
+                    SpotAlarmScheduler(this).setAlarm(calendar.timeInMillis)
+
+                }else{
+                    Toast.makeText(this, this.getString(R.string.timer_permission), Toast.LENGTH_LONG).show()
+                    val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+                    startActivity(intent)
+                }
             }
 
             director.getResult().show()

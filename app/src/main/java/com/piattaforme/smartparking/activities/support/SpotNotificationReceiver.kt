@@ -16,7 +16,7 @@ class SpotNotificationReceiver : BroadcastReceiver() {
 
         val channel = NotificationChannel(
             channelId,
-            "Avvisi Parcheggio",
+            "Park Notices",
             NotificationManager.IMPORTANCE_HIGH
         )
         notificationManager.createNotificationChannel(channel)
