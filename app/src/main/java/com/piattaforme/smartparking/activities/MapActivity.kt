@@ -1,13 +1,9 @@
 package com.piattaforme.smartparking.activities
 
-import android.Manifest
 import android.app.AlarmManager
 import android.app.AlertDialog
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.location.Location
-import android.location.LocationListener
-import android.location.LocationManager
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
@@ -20,27 +16,23 @@ import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.piattaforme.smartparking.R
 import com.piattaforme.smartparking.activities.support.MapDialogDirector
+import com.piattaforme.smartparking.activities.support.MapLocationManager
 import com.piattaforme.smartparking.activities.support.SpotAlarmScheduler
 import com.piattaforme.smartparking.model.SpotsHistoryViewModel
 import kotlinx.coroutines.launch
 import org.osmdroid.config.Configuration
-import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
-import org.osmdroid.views.overlay.Marker
 
-class MapActivity : AppCompatActivity(), LocationListener {
+class MapActivity : AppCompatActivity() {
     val locationPermissionCode = 100
     private lateinit var mapView: MapView
-    private lateinit var  locationManager : LocationManager
-    private var marker : Marker? = null
+    private lateinit var mapLocationManager : MapLocationManager
     private lateinit var historyViewModel: SpotsHistoryViewModel
 
     @RequiresApi(Build.VERSION_CODES.S)
@@ -68,7 +60,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
 
     @RequiresApi(Build.VERSION_CODES.S)
     fun parkHere() {
-        if (marker != null) {
+        if (mapLocationManager.getCurrentMarker() != null) {
             val (layout, textInput, timePicker) = createLayout()
 
             val director = MapDialogDirector()
@@ -97,7 +89,6 @@ class MapActivity : AppCompatActivity(), LocationListener {
                     startActivity(intent)
                 }
             }
-
             director.getResult().show()
 
         } else {
@@ -133,11 +124,13 @@ class MapActivity : AppCompatActivity(), LocationListener {
 
         historyViewModel = ViewModelProvider(this)[SpotsHistoryViewModel::class.java]
 
-        if(marker != null) {
+        val currentLocation = mapLocationManager.getCurrentMarker()
+        if (currentLocation != null) {
+            mapLocationManager.setParkingSpot(currentLocation.latitude, currentLocation.longitude)
             lifecycleScope.launch {
                 val success = historyViewModel.saveSpot(
-                    marker!!.position.latitude.toFloat(),
-                    marker!!.position.longitude.toFloat(),
+                    currentLocation.latitude.toFloat(),
+                    currentLocation.longitude.toFloat(),
                     finalText
                 )
                 if (success) {
@@ -151,69 +144,20 @@ class MapActivity : AppCompatActivity(), LocationListener {
 
     fun initMap() {
         mapView = findViewById(R.id.osmdroid_map)
+        mapLocationManager = MapLocationManager(mapView,this)
         mapView.setMultiTouchControls(true)
         mapView.controller.setZoom(18.0)
 
-        requestLocationManagerUpdates()
+        mapLocationManager.requestLocationManagerUpdates()
 
         val prefs = applicationContext.getSharedPreferences("SmartParkingData", MODE_PRIVATE)
         if(prefs.getBoolean("IS_PARKED", false)){
-            val parkingLatitude = prefs.getFloat("PARK_LAT",0.toFloat()).toDouble()
-            val parkingLongitude = prefs.getFloat("PARK_LON",0.toFloat()).toDouble()
-            val parking = createMarker(parkingLatitude,parkingLongitude,"Parked Here")
-            mapView.overlays.add(parking)
-            mapView.invalidate()
+            val lat = prefs.getFloat("PARK_LAT", 0f).toDouble()
+            val lon = prefs.getFloat("PARK_LON", 0f).toDouble()
+            mapLocationManager.setParkingSpot(lat, lon)
         }
     }
 
-    private fun requestLocationManagerUpdates(){
-        locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
-        val requestLocationPermission =
-            ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-
-        if (requestLocationPermission != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                locationPermissionCode
-            )
-        } else {
-            locationManager.requestLocationUpdates(
-                LocationManager.GPS_PROVIDER,
-                5000L,
-                10f,
-                this
-            )
-        }
-    }
-
-    override fun onLocationChanged(location: Location){
-        val geoPoint = GeoPoint(location.latitude,location.longitude)
-
-        if (marker != null) {
-            mapView.overlays.remove(marker)
-        }
-
-        marker = createMarker(location.latitude,location.longitude, "Sei qui")
-
-        mapView.overlays.add(marker)
-        mapView.controller.setCenter(geoPoint)
-        mapView.invalidate()
-    }
-
-    private fun createMarker(latitude : Double, longitude: Double, title : String): Marker {
-        val newMarker = Marker(mapView)
-
-        val geoPoint = GeoPoint(latitude,longitude)
-
-        newMarker.position = geoPoint
-
-        newMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-
-        newMarker.title = title
-
-        return newMarker
-    }
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
@@ -235,13 +179,13 @@ class MapActivity : AppCompatActivity(), LocationListener {
         super.onPause()
         mapView.onPause()
 
-        locationManager.removeUpdates(this)
+        mapLocationManager.stopUpdates()
     }
 
     override fun onResume() {
         super.onResume()
         mapView.onResume()
 
-        requestLocationManagerUpdates()
+        mapLocationManager.requestLocationManagerUpdates()
     }
 }
