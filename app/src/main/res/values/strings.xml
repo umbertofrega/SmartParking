@@ -20,4 +20,6 @@
     <string name="notification_title">Scadenza Parcheggio!</string>
     <string name="notification_text">È arrivato l\'orario che avevi impostato</string>
     <string name="timer_permission">Per favore, autorizza le sveglie esatte per i parcheggi</string>
+    <string name="you_are_here">Sei qui!</string>
+    <string name="parked_spot">Hai parkeggiato qui!</string>
 </resources>

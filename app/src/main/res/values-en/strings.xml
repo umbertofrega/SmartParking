@@ -21,4 +21,6 @@
     <string name="notification_title">Spot expired!</string>
     <string name="notification_text">The time that you requested has come</string>
     <string name="timer_permission">Per favore, autorizza le sveglie esatte per i parcheggi</string>
+    <string name="you_are_here">Sei qui!</string>
+    <string name="parked_spot">Your spot is here!</string>
 </resources>
