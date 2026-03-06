@@ -22,4 +22,6 @@
     <string name="timer_permission">Per favore, autorizza le sveglie esatte per i parcheggi</string>
     <string name="you_are_here">Sei qui!</string>
     <string name="parked_spot">Hai parkeggiato qui!</string>
+    <string name="access_authorized">Accesso autorizzato</string>
+    <string name="access_refused">Accesso negato</string>
 </resources>

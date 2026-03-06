@@ -32,6 +32,7 @@ import org.osmdroid.views.MapView
 class MapActivity : AppCompatActivity() {
     val locationPermissionCode = 100
     private lateinit var mapView: MapView
+    private var pendingAlarmTime: Long = 0L
     private lateinit var mapLocationManager : MapLocationManager
     private lateinit var historyViewModel: SpotsHistoryViewModel
 
@@ -57,10 +58,8 @@ class MapActivity : AppCompatActivity() {
         
         parkListener.setOnClickListener{ parkHere() }
     }
-
-    @RequiresApi(Build.VERSION_CODES.S)
     fun parkHere() {
-        if (mapLocationManager.getCurrentMarker() != null) {
+        if (mapLocationManager.getCurrentGeoPoint() != null) {
             val (layout, textInput, timePicker) = createLayout()
 
             val director = MapDialogDirector()
@@ -80,13 +79,17 @@ class MapActivity : AppCompatActivity() {
                 }
 
                 val alarmManager = this.getSystemService(ALARM_SERVICE) as AlarmManager
-                if(alarmManager.canScheduleExactAlarms()){
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    if (alarmManager.canScheduleExactAlarms()) {
+                        SpotAlarmScheduler(this).setAlarm(calendar.timeInMillis)
+                    } else {
+                        Toast.makeText(this, this.getString(R.string.timer_permission), Toast.LENGTH_LONG).show()
+                        val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+                        pendingAlarmTime = calendar.timeInMillis
+                        startActivity(intent)
+                    }
+                } else {
                     SpotAlarmScheduler(this).setAlarm(calendar.timeInMillis)
-
-                }else{
-                    Toast.makeText(this, this.getString(R.string.timer_permission), Toast.LENGTH_LONG).show()
-                    val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
-                    startActivity(intent)
                 }
             }
             director.getResult().show()
@@ -124,7 +127,7 @@ class MapActivity : AppCompatActivity() {
 
         historyViewModel = ViewModelProvider(this)[SpotsHistoryViewModel::class.java]
 
-        val currentLocation = mapLocationManager.getCurrentMarker()
+        val currentLocation = mapLocationManager.getCurrentGeoPoint()
         if (currentLocation != null) {
             mapLocationManager.setParkingSpot(currentLocation.latitude, currentLocation.longitude)
             lifecycleScope.launch {
@@ -168,9 +171,9 @@ class MapActivity : AppCompatActivity() {
 
         if(requestCode == locationPermissionCode){
             if(grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED){
-                Toast.makeText(this,"Access Authorized", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this,getString(R.string.access_authorized), Toast.LENGTH_SHORT).show()
             } else {
-                Toast.makeText(this,"Access Refused", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this,getString(R.string.access_refused), Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -185,7 +188,13 @@ class MapActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         mapView.onResume()
-
+        if (pendingAlarmTime != 0L) {
+            val alarmManager = getSystemService(ALARM_SERVICE) as AlarmManager
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && alarmManager.canScheduleExactAlarms()) {
+                SpotAlarmScheduler(this).setAlarm(pendingAlarmTime)
+                pendingAlarmTime = 0L
+            }
+        }
         mapLocationManager.requestLocationManagerUpdates()
     }
 }

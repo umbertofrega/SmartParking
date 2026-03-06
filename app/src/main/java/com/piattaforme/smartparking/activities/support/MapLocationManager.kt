@@ -21,12 +21,12 @@ class MapLocationManager(val mapView: MapView,val context: Context) : LocationLi
 
     private var marker: Marker? = null
 
-    fun getCurrentMarker() : GeoPoint? {
+    fun getCurrentGeoPoint() : GeoPoint? {
         if(marker == null)
             return null
         return GeoPoint(marker!!.position.latitude, marker!!.position.longitude)
     }
-
+ 
     override fun onLocationChanged(location: Location){
         val geoPoint = GeoPoint(location.latitude, location.longitude)
 
@@ -37,7 +37,6 @@ class MapLocationManager(val mapView: MapView,val context: Context) : LocationLi
             marker?.position = geoPoint
         }
 
-        mapView.controller.setCenter(geoPoint)
         mapView.controller.setCenter(geoPoint)
         mapView.invalidate()
     }
