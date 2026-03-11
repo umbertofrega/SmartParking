@@ -167,6 +167,7 @@ class MapActivity : AppCompatActivity() {
             val alarmManager = SpotAlarmManager(this)
             if(alarmManager.canScheduleExactAlarms()){
                 alarmManager.setAlarm(pendingAlarmTime)
+                pendingAlarmTime = 0L
             }
         }
         mapLocationManager.requestLocationManagerUpdates()
