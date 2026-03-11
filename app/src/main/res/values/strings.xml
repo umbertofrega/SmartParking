@@ -21,7 +21,9 @@
     <string name="notification_text">È arrivato l\'orario che avevi impostato</string>
     <string name="timer_permission">Per favore, autorizza le sveglie esatte per i parcheggi</string>
     <string name="you_are_here">Sei qui!</string>
-    <string name="parked_spot">Hai parkeggiato qui!</string>
+    <string name="parked_spot">Hai parcheggiato qui!</string>
     <string name="access_authorized">Accesso autorizzato</string>
     <string name="access_refused">Accesso negato</string>
+    <string name="cancel_marker">Vuoi eliminare questo punto?</string>
+    <string name="cancel">Cancella</string>
 </resources>

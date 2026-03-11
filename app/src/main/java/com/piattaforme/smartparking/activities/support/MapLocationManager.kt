@@ -2,12 +2,14 @@ package com.piattaforme.smartparking.activities.support
 
 import android.Manifest
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Context
 import android.content.Context.LOCATION_SERVICE
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
+import android.widget.LinearLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.piattaforme.smartparking.R
@@ -17,53 +19,67 @@ import org.osmdroid.views.overlay.Marker
 
 class MapLocationManager(val mapView: MapView,val context: Context) : LocationListener {
     val locationPermissionCode = 100
+    private var userLocationMarker: Marker? = null
     private lateinit var  locationManager : LocationManager
 
-    private var marker: Marker? = null
-
+    private val parkingMarkers = mutableListOf<Marker>()
     fun getCurrentGeoPoint() : GeoPoint? {
-        if(marker == null)
+        if(parkingMarkers.isEmpty())
             return null
-        return GeoPoint(marker!!.position.latitude, marker!!.position.longitude)
+
+        val marker = parkingMarkers.last()
+        return GeoPoint(marker.position.latitude, marker.position.longitude)
     }
- 
-    override fun onLocationChanged(location: Location){
+
+    override fun onLocationChanged(location: Location) {
         val geoPoint = GeoPoint(location.latitude, location.longitude)
 
-        if(marker == null) {
-            marker = createMarker(location.latitude, location.longitude, context.getString(R.string.you_are_here))
-            mapView.overlays.add(marker)
-        }else{
-            marker?.position = geoPoint
+        if (userLocationMarker == null) {
+            userLocationMarker = createMarker(location.latitude, location.longitude, context.getString(R.string.you_are_here))
+            mapView.overlays.add(userLocationMarker)
+        } else {
+            userLocationMarker?.position = geoPoint
         }
 
         mapView.controller.setCenter(geoPoint)
         mapView.invalidate()
     }
 
-    private fun createMarker(latitude : Double, longitude: Double, title : String): Marker {
+    private fun createDialog(marker : Marker) {
+        val builder = AlertDialog.Builder(this.context)
+        builder.setTitle(context.getString(R.string.cancel_marker))
+        builder.setView(LinearLayout(this.context))
+
+        builder.setPositiveButton(context.getString(R.string.cancel)){_, _ ->
+            mapView.overlays.remove(marker)
+            parkingMarkers.remove(marker)
+            mapView.invalidate()
+        }
+
+        builder.setNegativeButton(context.getString(R.string.alert_cancel)){_,_ -> }
+        builder.show()
+    }
+
+    private fun createMarker(latitude: Double, longitude: Double, title: String): Marker {
         val newMarker = Marker(mapView)
-
-        val geoPoint = GeoPoint(latitude,longitude)
-
-        newMarker.position = geoPoint
-
+        newMarker.position = GeoPoint(latitude, longitude)
         newMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-
         newMarker.title = title
-
         return newMarker
     }
 
 
     fun setParkingSpot(lat: Double, lon: Double) {
-        val text = context.getString(R.string.parked_spot)
-        val newMarker = Marker(mapView)
-        newMarker.position = GeoPoint(lat, lon)
-        newMarker.title = text
-        newMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+        val newMarker = createMarker(lat, lon, context.getString(R.string.parked_spot))
+
+        newMarker.setOnMarkerClickListener { clickedMarker, _ ->
+            createDialog(clickedMarker)
+            true
+        }
 
         mapView.overlays.add(newMarker)
+        parkingMarkers.add(newMarker)
+
         mapView.invalidate()
     }
 

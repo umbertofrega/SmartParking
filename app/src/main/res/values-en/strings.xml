@@ -25,4 +25,6 @@
     <string name="parked_spot">Your spot is here!</string>
     <string name="access_authorized">Access authorized</string>
     <string name="access_refused">Access refused</string>
+    <string name="cancel_marker">Vuoi eliminare questo punto?</string>
+    <string name="cancel">Cancella</string>
 </resources>
