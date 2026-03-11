@@ -5,6 +5,8 @@ import android.os.Bundle
 import android.widget.Button
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.piattaforme.smartparking.R
@@ -21,6 +23,8 @@ class MainActivity : AppCompatActivity() {
         }
         val btnPark : Button = findViewById(R.id.btn_park)
         val btnHistory : Button = findViewById(R.id.btn_history)
+        val btnIt : Button = findViewById(R.id.btn_it)
+        val btnEng : Button = findViewById(R.id.btn_en)
 
         btnPark.setOnClickListener {
             val mapIntent = Intent(this, MapActivity::class.java)
@@ -33,5 +37,19 @@ class MainActivity : AppCompatActivity() {
 
             startActivity(histIntent)
         }
+
+        btnIt.setOnClickListener{
+            changeLanguage("it")
+        }
+
+        btnEng.setOnClickListener{
+            changeLanguage("en")
+        }
+    }
+    fun changeLanguage(languageCode: String) {
+        val localeList = LocaleListCompat.forLanguageTags(languageCode)
+
+
+        AppCompatDelegate.setApplicationLocales(localeList)
     }
 }
