@@ -1,13 +1,12 @@
 package com.piattaforme.smartparking.activities
 
-import android.app.AlarmManager
+import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -23,11 +22,13 @@ import androidx.lifecycle.lifecycleScope
 import com.piattaforme.smartparking.R
 import com.piattaforme.smartparking.activities.support.MapDialogDirector
 import com.piattaforme.smartparking.activities.support.MapLocationManager
-import com.piattaforme.smartparking.activities.support.SpotAlarmScheduler
+import com.piattaforme.smartparking.activities.support.SpotAlarmManager
 import com.piattaforme.smartparking.model.SpotsHistoryViewModel
 import kotlinx.coroutines.launch
 import org.osmdroid.config.Configuration
+import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
+import java.util.Calendar
 
 class MapActivity : AppCompatActivity() {
     val locationPermissionCode = 100
@@ -52,50 +53,44 @@ class MapActivity : AppCompatActivity() {
             insets
         }
 
-        initMap()
 
-        val parkListener: Button = findViewById(R.id.btn_park_here)
-        
-        parkListener.setOnClickListener{ parkHere() }
+        mapLocationManager = MapLocationManager(this,this.findViewById(R.id.osmdroid_map))
+
+
+        this.mapView = mapLocationManager.initMap() { point ->
+            parkHere(point)
+        }
     }
-    fun parkHere() {
-        if (mapLocationManager.getCurrentGeoPoint() != null) {
-            val (layout, textInput, timePicker) = createLayout()
 
-            val director = MapDialogDirector()
+    fun parkHere(point : GeoPoint) {
+        val (layout, textInput, timePicker) = createLayout()
 
-            director.makeDialog(layout, this, AlertDialog.Builder(this)) {
+        val alarmManager = SpotAlarmManager(this)
 
-                saveSpot(textInput)
+        val director = MapDialogDirector()
 
-                val calendar = java.util.Calendar.getInstance().apply {
-                    set(java.util.Calendar.HOUR_OF_DAY, timePicker.hour)
-                    set(java.util.Calendar.MINUTE, timePicker.minute)
-                    set(java.util.Calendar.SECOND, 0)
-                }
+        director.makeDialog(layout, this, AlertDialog.Builder(this)) {
 
-                if (calendar.before(java.util.Calendar.getInstance())) {
-                    calendar.add(java.util.Calendar.DAY_OF_YEAR, 1)
-                }
+            saveSpot(textInput, point)
 
-                val alarmManager = this.getSystemService(ALARM_SERVICE) as AlarmManager
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    if (alarmManager.canScheduleExactAlarms()) {
-                        SpotAlarmScheduler(this).setAlarm(calendar.timeInMillis)
-                    } else {
-                        Toast.makeText(this, this.getString(R.string.timer_permission), Toast.LENGTH_LONG).show()
-                        val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
-                        pendingAlarmTime = calendar.timeInMillis
-                        startActivity(intent)
-                    }
-                } else {
-                    SpotAlarmScheduler(this).setAlarm(calendar.timeInMillis)
-                }
-            }
-            director.getResult().show()
+            val calendar = alarmManager.getCalendar(timePicker)
 
+            this.setAlarm(alarmManager, calendar)
+
+        }
+        director.getResult().show()
+    }
+
+    @SuppressLint("InlinedApi")
+    private fun setAlarm( alarmManager: SpotAlarmManager, calendar: Calendar) {
+        if (alarmManager.canScheduleExactAlarms()) {
+            alarmManager.setAlarm(calendar.timeInMillis)
         } else {
-            Toast.makeText(this, this.getString(R.string.alert_wait), Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, this.getString(R.string.timer_permission), Toast.LENGTH_LONG)
+                .show()
+            val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+            pendingAlarmTime = calendar.timeInMillis
+            startActivity(intent)
         }
     }
 
@@ -120,53 +115,33 @@ class MapActivity : AppCompatActivity() {
         return Triple(layout, textInput, timePicker)
     }
 
-    private fun saveSpot(textInput: EditText) {
+    private fun saveSpot(textInput: EditText, spot : GeoPoint) {
         val userNote = textInput.text.toString()
 
         val finalText = userNote.ifBlank { this.getString(R.string.alert_saved_position) }
 
         historyViewModel = ViewModelProvider(this)[SpotsHistoryViewModel::class.java]
 
-        val currentLocation = mapLocationManager.getCurrentGeoPoint()
-        if (currentLocation != null) {
-            mapLocationManager.setParkingSpot(currentLocation.latitude, currentLocation.longitude)
-            lifecycleScope.launch {
-                val success = historyViewModel.saveSpot(
-                    currentLocation.latitude.toFloat(),
-                    currentLocation.longitude.toFloat(),
-                    finalText
-                )
-                if (success) {
-                    Toast.makeText(this@MapActivity, getString(R.string.saved_success), Toast.LENGTH_SHORT).show()
-                } else {
-                    Toast.makeText(this@MapActivity, getString(R.string.saved_fail), Toast.LENGTH_SHORT).show()
-                }
+        mapLocationManager.setParkingSpot(spot.latitude, spot.longitude)
+
+        lifecycleScope.launch {
+            val success = historyViewModel.saveSpot(
+                spot.latitude.toFloat(),
+                spot.longitude.toFloat(),
+                finalText
+            )
+            if (success) {
+                Toast.makeText(this@MapActivity, getString(R.string.saved_success), Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(this@MapActivity, getString(R.string.saved_fail), Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-    fun initMap() {
-        mapView = findViewById(R.id.osmdroid_map)
-        mapLocationManager = MapLocationManager(mapView,this)
-        mapView.setMultiTouchControls(true)
-        mapView.controller.setZoom(18.0)
-
-        mapLocationManager.requestLocationManagerUpdates()
-
-        val prefs = applicationContext.getSharedPreferences("SmartParkingData", MODE_PRIVATE)
-        if(prefs.getBoolean("IS_PARKED", false)){
-            val lat = prefs.getFloat("PARK_LAT", 0f).toDouble()
-            val lon = prefs.getFloat("PARK_LON", 0f).toDouble()
-            mapLocationManager.setParkingSpot(lat, lon)
-        }
-    }
 
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 
         if(requestCode == locationPermissionCode){
@@ -189,10 +164,9 @@ class MapActivity : AppCompatActivity() {
         super.onResume()
         mapView.onResume()
         if (pendingAlarmTime != 0L) {
-            val alarmManager = getSystemService(ALARM_SERVICE) as AlarmManager
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && alarmManager.canScheduleExactAlarms()) {
-                SpotAlarmScheduler(this).setAlarm(pendingAlarmTime)
-                pendingAlarmTime = 0L
+            val alarmManager = SpotAlarmManager(this)
+            if(alarmManager.canScheduleExactAlarms()){
+                alarmManager.setAlarm(pendingAlarmTime)
             }
         }
         mapLocationManager.requestLocationManagerUpdates()

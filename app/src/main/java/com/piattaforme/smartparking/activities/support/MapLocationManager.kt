@@ -5,6 +5,7 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.content.Context
 import android.content.Context.LOCATION_SERVICE
+import android.content.Context.MODE_PRIVATE
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationListener
@@ -13,23 +14,55 @@ import android.widget.LinearLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.piattaforme.smartparking.R
+import org.osmdroid.events.MapEventsReceiver
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
+import org.osmdroid.views.overlay.MapEventsOverlay
 import org.osmdroid.views.overlay.Marker
 
-class MapLocationManager(val mapView: MapView,val context: Context) : LocationListener {
-    val locationPermissionCode = 100
+class MapLocationManager(val context: Context, val mapView : MapView) : LocationListener {
+    private val locationPermissionCode = 100
     private var userLocationMarker: Marker? = null
     private lateinit var  locationManager : LocationManager
 
     private val parkingMarkers = mutableListOf<Marker>()
-    fun getCurrentGeoPoint() : GeoPoint? {
-        if(parkingMarkers.isEmpty())
-            return null
 
-        val marker = parkingMarkers.last()
-        return GeoPoint(marker.position.latitude, marker.position.longitude)
+    fun initMap( onPark: (point : GeoPoint) -> Unit) : MapView {
+        mapView.setMultiTouchControls(true)
+        mapView.controller.setZoom(18.0)
+
+        this.requestLocationManagerUpdates()
+
+        mapView.overlays.add(getEventReceiver(onPark))
+
+        val prefs = context.getSharedPreferences("SmartParkingData", MODE_PRIVATE)
+        if(prefs.getBoolean("IS_PARKED", false)){
+            val lat = prefs.getFloat("PARK_LAT", 0f).toDouble()
+            val lon = prefs.getFloat("PARK_LON", 0f).toDouble()
+            this.setParkingSpot(lat, lon)
+        }
+
+        return this.mapView
     }
+
+    fun getEventReceiver( onPark: (point : GeoPoint) -> Unit ): MapEventsOverlay{
+        val mapEventReceiver : MapEventsReceiver = object : MapEventsReceiver {
+            override fun singleTapConfirmedHelper(p0: GeoPoint?): Boolean {
+                return false
+            }
+
+            override fun longPressHelper(p0: GeoPoint?): Boolean {
+                if( p0 != null){
+                    onPark(p0)
+                    return true
+                }
+                return false
+            }
+        }
+
+        return MapEventsOverlay(mapEventReceiver)
+    }
+
 
     override fun onLocationChanged(location: Location) {
         val geoPoint = GeoPoint(location.latitude, location.longitude)
