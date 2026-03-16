@@ -26,4 +26,5 @@
     <string name="access_refused">Accesso negato</string>
     <string name="cancel_marker">Vuoi eliminare questo punto?</string>
     <string name="cancel">Cancella</string>
+    <string name="click_on_spot">Premi su un parcheggio per reinserirlo nella mappa!</string>
 </resources>

@@ -20,11 +20,12 @@
     <string name="timer_text">Set a timer if you want!</string>
     <string name="notification_title">Spot expired!</string>
     <string name="notification_text">The time that you requested has come</string>
-    <string name="timer_permission">Per favore, autorizza le sveglie esatte per i parcheggi</string>
-    <string name="you_are_here">Sei qui!</string>
+    <string name="timer_permission">Please authorize exact alarm from settings</string>
+    <string name="you_are_here">You are here!</string>
     <string name="parked_spot">Your spot is here!</string>
     <string name="access_authorized">Access authorized</string>
     <string name="access_refused">Access refused</string>
-    <string name="cancel_marker">Vuoi eliminare questo punto?</string>
-    <string name="cancel">Cancella</string>
+    <string name="cancel_marker">Do you want to delete this point?</string>
+    <string name="cancel">Cancel</string>
+    <string name="click_on_spot">Click on a spot to reinsert it in the map!</string>
 </resources>
