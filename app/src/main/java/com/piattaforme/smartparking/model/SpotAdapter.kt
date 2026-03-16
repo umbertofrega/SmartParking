@@ -25,7 +25,9 @@ class SpotAdapter : RecyclerView.Adapter<SpotAdapter.SpotViewHolder>() {
 
         holder.tvNota.text = currentSpot.note
 
-        holder.tvCoordinate.text = "Lat: ${currentSpot.latitude}, Lon : ${currentSpot.longitude}"
+        val text = "Lat: ${currentSpot.latitude}, Lon : ${currentSpot.longitude}"
+
+        holder.tvCoordinate.text = text
     }
 
     fun setData(newList: List<Spots>) {

@@ -45,81 +45,6 @@ class MapLocationManager(val context: Context, val mapView : MapView) : Location
         return this.mapView
     }
 
-    fun getEventReceiver( onPark: (point : GeoPoint) -> Unit ): MapEventsOverlay{
-        val mapEventReceiver : MapEventsReceiver = object : MapEventsReceiver {
-            override fun singleTapConfirmedHelper(p0: GeoPoint?): Boolean {
-                return false
-            }
-
-            override fun longPressHelper(p0: GeoPoint?): Boolean {
-                if( p0 != null){
-                    onPark(p0)
-                    return true
-                }
-                return false
-            }
-        }
-
-        return MapEventsOverlay(mapEventReceiver)
-    }
-
-
-    override fun onLocationChanged(location: Location) {
-        val geoPoint = GeoPoint(location.latitude, location.longitude)
-
-        if (userLocationMarker == null) {
-            userLocationMarker = createMarker(location.latitude, location.longitude, context.getString(R.string.you_are_here))
-            mapView.overlays.add(userLocationMarker)
-        } else {
-            userLocationMarker?.position = geoPoint
-        }
-
-        mapView.controller.setCenter(geoPoint)
-        mapView.invalidate()
-    }
-
-    private fun createDialog(marker : Marker) {
-        val builder = AlertDialog.Builder(this.context)
-        builder.setTitle(context.getString(R.string.cancel_marker))
-        builder.setView(LinearLayout(this.context))
-
-        builder.setPositiveButton(context.getString(R.string.cancel)){_, _ ->
-            mapView.overlays.remove(marker)
-            parkingMarkers.remove(marker)
-            mapView.invalidate()
-        }
-
-        builder.setNegativeButton(context.getString(R.string.alert_cancel)){_,_ -> }
-        builder.show()
-    }
-
-    private fun createMarker(latitude: Double, longitude: Double, title: String): Marker {
-        val newMarker = Marker(mapView)
-        newMarker.position = GeoPoint(latitude, longitude)
-        newMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-        newMarker.title = title
-        return newMarker
-    }
-
-
-    fun setParkingSpot(lat: Double, lon: Double) {
-        val newMarker = createMarker(lat, lon, context.getString(R.string.parked_spot))
-
-        newMarker.setOnMarkerClickListener { clickedMarker, _ ->
-            createDialog(clickedMarker)
-            true
-        }
-
-        mapView.overlays.add(newMarker)
-        parkingMarkers.add(newMarker)
-
-        mapView.invalidate()
-    }
-
-    fun stopUpdates(){
-        locationManager.removeUpdates(this)
-    }
-
     fun requestLocationManagerUpdates(){
         locationManager = context.getSystemService(LOCATION_SERVICE) as LocationManager
 
@@ -139,5 +64,78 @@ class MapLocationManager(val context: Context, val mapView : MapView) : Location
                 this
             )
         }
+    }
+
+    fun getEventReceiver( onPark: (point : GeoPoint) -> Unit ): MapEventsOverlay{
+        val mapEventReceiver : MapEventsReceiver = object : MapEventsReceiver {
+            override fun singleTapConfirmedHelper(p0: GeoPoint?): Boolean {
+                return false
+            }
+
+            override fun longPressHelper(p0: GeoPoint?): Boolean {
+                if( p0 != null){
+                    onPark(p0)
+                    return true
+                }
+                return false
+            }
+        }
+
+        return MapEventsOverlay(mapEventReceiver)
+    }
+
+    fun setParkingSpot(lat: Double, lon: Double) {
+        val newMarker = createMarker(lat, lon, context.getString(R.string.parked_spot))
+
+        newMarker.setOnMarkerClickListener { clickedMarker, _ ->
+            createDialog(clickedMarker)
+            true
+        }
+
+        mapView.overlays.add(newMarker)
+        parkingMarkers.add(newMarker)
+
+        mapView.invalidate()
+    }
+
+    private fun createDialog(marker : Marker) {
+        val builder = AlertDialog.Builder(this.context)
+        builder.setTitle(context.getString(R.string.cancel_marker))
+        builder.setView(LinearLayout(this.context))
+
+        builder.setPositiveButton(context.getString(R.string.cancel)){_, _ ->
+            mapView.overlays.remove(marker)
+            parkingMarkers.remove(marker)
+            mapView.invalidate()
+        }
+
+        builder.setNegativeButton(context.getString(R.string.alert_cancel)){_,_ -> }
+        builder.show()
+    }
+
+    override fun onLocationChanged(location: Location) {
+        val geoPoint = GeoPoint(location.latitude, location.longitude)
+
+        if (userLocationMarker == null) {
+            userLocationMarker = createMarker(location.latitude, location.longitude, context.getString(R.string.you_are_here))
+            mapView.overlays.add(userLocationMarker)
+        } else {
+            userLocationMarker?.position = geoPoint
+        }
+
+        mapView.controller.setCenter(geoPoint)
+        mapView.invalidate()
+    }
+
+    private fun createMarker(latitude: Double, longitude: Double, title: String): Marker {
+        val newMarker = Marker(mapView)
+        newMarker.position = GeoPoint(latitude, longitude)
+        newMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+        newMarker.title = title
+        return newMarker
+    }
+
+    fun stopUpdates(){
+        locationManager.removeUpdates(this)
     }
 }

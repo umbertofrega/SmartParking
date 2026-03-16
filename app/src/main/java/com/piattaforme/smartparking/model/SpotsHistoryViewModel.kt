@@ -49,6 +49,7 @@ class SpotsHistoryViewModel(application: Application) : AndroidViewModel(applica
                 spotsHistoryDao.insert(parking)
                 true
             } catch (_: Exception) {
+                System.err.println("Error in inserting the spot in db")
                 false
             }
         }

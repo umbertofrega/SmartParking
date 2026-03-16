@@ -37,7 +37,6 @@ class HistoryActivity : AppCompatActivity() {
     }
 
     fun showHistory(){
-
         val recyclerView = findViewById<RecyclerView>(R.id.rv_history)
         recyclerView.layoutManager = LinearLayoutManager(this)
 
