@@ -5,7 +5,6 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.content.Context
 import android.content.Context.LOCATION_SERVICE
-import android.content.Context.MODE_PRIVATE
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationListener
@@ -24,8 +23,7 @@ class MapLocationManager(val context: Context, val mapView : MapView) : Location
     private val locationPermissionCode = 100
     private var userLocationMarker: Marker? = null
     private lateinit var  locationManager : LocationManager
-
-    private val parkingMarkers = mutableListOf<Marker>()
+    private val prefsManager = PrefsManager(context)
 
     fun initMap( onPark: (point : GeoPoint) -> Unit) : MapView {
         mapView.setMultiTouchControls(true)
@@ -33,16 +31,26 @@ class MapLocationManager(val context: Context, val mapView : MapView) : Location
 
         this.requestLocationManagerUpdates()
 
+        this.restoreMarkers()
+
         mapView.overlays.add(getEventReceiver(onPark))
 
-        val prefs = context.getSharedPreferences("SmartParkingData", MODE_PRIVATE)
-        if(prefs.getBoolean("IS_PARKED", false)){
-            val lat = prefs.getFloat("PARK_LAT", 0f).toDouble()
-            val lon = prefs.getFloat("PARK_LON", 0f).toDouble()
-            this.setParkingSpot(lat, lon)
-        }
-
         return this.mapView
+    }
+
+    private fun restoreMarkers(){
+        val savedMarkers = prefsManager.getAll()
+
+        for (spot in savedMarkers) {
+            val strings = spot?.split(",")
+
+            if (strings?.size == 2) {
+                val lat = strings[0].toDouble()
+                val lon = strings[1].toDouble()
+
+                this.addParkingSpot(lat, lon)
+            }
+        }
     }
 
     fun requestLocationManagerUpdates(){
@@ -84,28 +92,31 @@ class MapLocationManager(val context: Context, val mapView : MapView) : Location
         return MapEventsOverlay(mapEventReceiver)
     }
 
-    fun setParkingSpot(lat: Double, lon: Double) {
+    fun drawMarker(lat: Double, lon: Double){
         val newMarker = createMarker(lat, lon, context.getString(R.string.parked_spot))
-
         newMarker.setOnMarkerClickListener { clickedMarker, _ ->
             createDialog(clickedMarker)
             true
         }
 
         mapView.overlays.add(newMarker)
-        parkingMarkers.add(newMarker)
-
         mapView.invalidate()
+    }
+
+    fun addParkingSpot(lat: Double, lon: Double) {
+        this.drawMarker(lat,lon)
+        prefsManager.save(lat,lon)
     }
 
     private fun createDialog(marker : Marker) {
         val builder = AlertDialog.Builder(this.context)
         builder.setTitle(context.getString(R.string.cancel_marker))
+        builder.setMessage("Il punto "+marker.title+" sarà eliminato dalla mappa!")
         builder.setView(LinearLayout(this.context))
 
         builder.setPositiveButton(context.getString(R.string.cancel)){_, _ ->
             mapView.overlays.remove(marker)
-            parkingMarkers.remove(marker)
+            prefsManager.remove(marker.position.latitude, marker.position.longitude)
             mapView.invalidate()
         }
 
@@ -119,11 +130,11 @@ class MapLocationManager(val context: Context, val mapView : MapView) : Location
         if (userLocationMarker == null) {
             userLocationMarker = createMarker(location.latitude, location.longitude, context.getString(R.string.you_are_here))
             mapView.overlays.add(userLocationMarker)
+            mapView.controller.setCenter(geoPoint)
         } else {
             userLocationMarker?.position = geoPoint
         }
 
-        mapView.controller.setCenter(geoPoint)
         mapView.invalidate()
     }
 
@@ -138,4 +149,20 @@ class MapLocationManager(val context: Context, val mapView : MapView) : Location
     fun stopUpdates(){
         locationManager.removeUpdates(this)
     }
+
+    fun focusToPoint(lat: Double, lon: Double) {
+        val newMarker = createMarker(lat, lon, "Saved Spot")
+        val point = GeoPoint(lat,lon)
+
+        newMarker.setOnMarkerClickListener { clickedMarker, _ ->
+            createDialog(clickedMarker)
+            true
+        }
+
+        mapView.overlays.add(newMarker)
+        prefsManager.save(lat,lon)
+        mapView.controller.setCenter(point)
+        mapView.invalidate()
+    }
+
 }

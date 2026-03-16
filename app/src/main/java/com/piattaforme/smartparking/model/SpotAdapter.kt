@@ -7,7 +7,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.piattaforme.smartparking.R
 
-class SpotAdapter : RecyclerView.Adapter<SpotAdapter.SpotViewHolder>() {
+class SpotAdapter( private val onSpotClick: (Spots) -> Unit ) : RecyclerView.Adapter<SpotAdapter.SpotViewHolder>() {
     private var history = emptyList<Spots>()
 
 
@@ -28,7 +28,13 @@ class SpotAdapter : RecyclerView.Adapter<SpotAdapter.SpotViewHolder>() {
         val text = "Lat: ${currentSpot.latitude}, Lon : ${currentSpot.longitude}"
 
         holder.tvCoordinate.text = text
+
+        holder.itemView.setOnClickListener {
+            onSpotClick(currentSpot)
+        }
     }
+
+
 
     fun setData(newList: List<Spots>) {
         this.history = newList

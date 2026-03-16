@@ -1,5 +1,6 @@
 package com.piattaforme.smartparking.activities
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import androidx.activity.enableEdgeToEdge
@@ -33,6 +34,9 @@ class HistoryActivity : AppCompatActivity() {
             viewModel.clearHistory()
         }
 
+
+
+
         showHistory()
     }
 
@@ -40,7 +44,14 @@ class HistoryActivity : AppCompatActivity() {
         val recyclerView = findViewById<RecyclerView>(R.id.rv_history)
         recyclerView.layoutManager = LinearLayoutManager(this)
 
-        val adapter = SpotAdapter()
+        val adapter = SpotAdapter { spot ->
+            val mapIntent = Intent(this, MapActivity::class.java)
+
+            mapIntent.putExtra("LAT", spot.latitude)
+            mapIntent.putExtra("LON", spot.longitude)
+
+            startActivity(mapIntent)
+        }
 
         recyclerView.adapter = adapter
 

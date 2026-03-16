@@ -53,13 +53,19 @@ class MapActivity : AppCompatActivity() {
             insets
         }
 
-
         mapLocationManager = MapLocationManager(this,this.findViewById(R.id.osmdroid_map))
 
 
         this.mapView = mapLocationManager.initMap() { point ->
             parkHere(point)
         }
+
+        val lat = intent.getFloatExtra("LAT",0f)
+        val lon = intent.getFloatExtra("LON",0f)
+
+        if (lat != 0f && lon != 0f)
+            mapLocationManager.focusToPoint(lat.toDouble(), lon.toDouble())
+
     }
 
     fun parkHere(point : GeoPoint) {
@@ -122,7 +128,7 @@ class MapActivity : AppCompatActivity() {
 
         historyViewModel = ViewModelProvider(this)[SpotsHistoryViewModel::class.java]
 
-        mapLocationManager.setParkingSpot(spot.latitude, spot.longitude)
+        mapLocationManager.addParkingSpot(spot.latitude, spot.longitude)
 
         lifecycleScope.launch {
             val success = historyViewModel.saveSpot(

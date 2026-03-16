@@ -1,8 +1,6 @@
 package com.piattaforme.smartparking.model
 
 import android.app.Application
-import android.content.Context.MODE_PRIVATE
-import androidx.core.content.edit
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.asLiveData
@@ -34,15 +32,6 @@ class SpotsHistoryViewModel(application: Application) : AndroidViewModel(applica
             longitude = lon,
             note = note
         )
-
-        val prefs = getApplication<Application>().getSharedPreferences("SmartParkingData", MODE_PRIVATE)
-
-
-        prefs.edit {
-            putFloat("PARK_LAT", parking.latitude)
-            putFloat("PARK_LON", parking.longitude)
-            putBoolean("IS_PARKED", true)
-        }
 
         return withContext(Dispatchers.IO) {
             try {
