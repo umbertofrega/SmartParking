@@ -9,14 +9,14 @@ class MapDialogDirector {
 
     private lateinit var dialog : AlertDialog
     private lateinit var dialogBuilder: AlertDialog.Builder
-    public fun makeDialog(layout : LinearLayout, context : Context, dialogBuilder: AlertDialog.Builder, onConfirm: () -> Unit) {
+     fun makeDialog(layout : LinearLayout, context : Context, dialogBuilder: AlertDialog.Builder, onConfirm: () -> Unit) {
         this.dialogBuilder = dialogBuilder
         initialSetup(layout, context)
         addButtons(context, onConfirm)
         this.dialog = this.dialogBuilder.create()
     }
 
-    public fun getResult() : AlertDialog {
+     fun getResult() : AlertDialog {
         return this.dialog
     }
 
